@@ -1,0 +1,35 @@
+Realeased Date: August 3rd, 2018 
+
+New Features:
+1£©Added OpenCV-based interfaces to obtain data of the CelexTM Sensor
+2)  Added interfaces to adjust the brightness automatically.
+3)  Added Optical-Flow interfaces in FullPic-Event mode.
+4)  Added interfaces to record AVI video.
+5)  Added interfaces to convert Bin file to AVI video.
+6£©Renamed CelexSensorDLL to CeleX4
+
+Bug Fixed:
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+SDK Development Environment:
+ 
+Windows
+   + Windows 7, 8£¬10 (x32 / x64)
+   + VS2015
+   + OpenCV 3.3.0
+   + qt-msvc2015-5.6.3
+ 
+Linux (Ubuntu 14.04 LTS x32 / x64)
+   + Linux 4.4.0-31-generic
+   + g++ 4.8.4
+   + C++
+   + OpenCV 3.3.0
+ 
+Linux (Ubuntu 16.04 LTS x32 / x64)
+   + Linux 4.13.0-32-generic
+   + g++ 5.4.0
+   + C++
+   + OpenCV 3.3.0
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
