@@ -1,2 +1,2 @@
-# CeleX-SDK_2_2
+# CeleX-SDK
 SDK version 2.2 for CeleX sensor.
