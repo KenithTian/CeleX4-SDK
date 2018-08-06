@@ -1,7 +1,7 @@
 # CeleX-SDK
 SDK version 2.2 for CeleX sensor.
 
-Markup : * CeleXTM is a family of smart image sensor, specially designed for machine vision. Each pixel in CeleXTM
+* CeleXTM is a family of smart image sensor, specially designed for machine vision. Each pixel in CeleXTM
 sensor can individually monitor the relative change in light intensity and report an event if a threshold is
 reached.
 
