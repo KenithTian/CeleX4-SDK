@@ -8,7 +8,7 @@ reached.
 * The output of the sensor is not a frame, but a stream of asynchronous digital events. The speed of the sensor
 is not limited by any traditional concept such as exposure time and frame rate. It can detect fast motion
 which is traditionally captured by expensive, high speed cameras running at thousands of frames per second,
-but with drastic reduced amount of data.
+but with drastically reduced amount of data.
 
 * Our technology allows post-capture change of frame-rate for video playback. One can view the video at
 10,000 frames per second to see high speed events or at normal rate of 25 frames per second.
