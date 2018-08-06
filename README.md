@@ -1,7 +1,7 @@
 # CeleX-SDK
 SDK version 2.2 for CeleX sensor.
 
-* CeleXTM is a family of smart image sensor, specially designed for machine vision. Each pixel in CeleXTM
+* CeleX is a family of smart image sensor, specially designed for machine vision. Each pixel in CeleX
 sensor can individually monitor the relative change in light intensity and report an event if a threshold is
 reached.
 
@@ -18,5 +18,5 @@ sensor, and it is consistent across the Windows (32-/64-bit) and Linux (32-/64-b
 environments. In addition, it provides both pure C++ interfaces without any third libraries and
 OpenCV-based interfaces to obtain data from the sensor.
 
-* This SDK provides three working modes of CeleXTM Sensors: Full-Picture data, Event data, and
+* This SDK provides three working modes of CeleX Sensors: Full-Picture data, Event data, and
 Optical-Flow data. Full-Picture and Event data output alternately to create FullPic-Event data.
