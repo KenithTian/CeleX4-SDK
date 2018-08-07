@@ -1,9 +1,8 @@
 # CeleX-SDK
 SDK version 2.2 for CeleX sensor.
 
-<div align=center> 
-![Structure]<div align=center>(https://github.com/CelePixel/CeleX-SDK/raw/master/Sources/CeleXDemo/images/SDK_Structure.png)
- </div>
+<div align=center>
+![Structure](https://github.com/CelePixel/CeleX-SDK/raw/master/Sources/CeleXDemo/images/SDK_Structure.png)
 
 * CeleX is a family of smart image sensor, specially designed for machine vision. Each pixel in CeleX
 sensor can individually monitor the relative change in light intensity and report an event if a threshold is
