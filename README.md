@@ -1,7 +1,7 @@
 # CeleX-SDK
 SDK version 2.2 for CeleX sensor.
 
-![Aaron Swartz](https://github.com/CelePixel/CeleX-SDK/raw/master/Sources/CeleXDemo/images/SDK_Structure.png)
+![Structure]<div align=center>(https://github.com/CelePixel/CeleX-SDK/raw/master/Sources/CeleXDemo/images/SDK_Structure.png)
 
 * CeleX is a family of smart image sensor, specially designed for machine vision. Each pixel in CeleX
 sensor can individually monitor the relative change in light intensity and report an event if a threshold is
@@ -23,7 +23,7 @@ OpenCV-based interfaces to obtain data from the sensor.
 * This SDK provides three working modes of CeleX Sensors: Full-Picture data, Event data, and
 Optical-Flow data. Full-Picture and Event data output alternately to create FullPic-Event data.
 
-`The CeleX-SDK is structured as follows:`
+`**The CeleX-SDK is structured as follows:**`
 
 * _DemoGUI_: CeleX Demo GUI execution (Windows and Linux).
 * _Documentation_:
