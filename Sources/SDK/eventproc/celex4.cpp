@@ -626,7 +626,7 @@ bool CeleX4::openPlaybackFile(string filePath)
 		m_stTimeRecorded.minute = (time % 3600) / 60;
 		m_stTimeRecorded.hour = time / 3600;
 	}
-	if (header[7] > 0)
+	if (header[7] >= 0)
 		m_pDataProcessThread->setSensorMode((emSensorMode)header[7]);
 	else
 		m_pDataProcessThread->setSensorMode(EventMode);
