@@ -7,7 +7,7 @@
 #include "dataqueue.h"
 #include "./include/celex4/celex4.h"
 #include "./include/celex4/celex4datamanager.h"
-
+#include "glwidget.h"
 #pragma execution_character_set("utf-8")
 
 class QLabel;
@@ -90,12 +90,14 @@ class HHSliderWidget;
 class QComboBox;
 class QHBoxLayout;
 class QGridLayout;
+class GLWidget;
+extern CeleX4* m_pCelexSensor;
 
 class MainWindow : public QWidget
 {
     Q_OBJECT
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(int argc, char *argv[],QWidget *parent = 0);
     ~MainWindow();
     void pauseThread(bool pause);
     CeleX4* getCeCelexSensorObj();
@@ -104,6 +106,7 @@ public:
 
 protected:
     void resizeEvent(QResizeEvent *event);
+    void keyPressEvent(QKeyEvent  *event);
 
 public slots:
     void onPipeoutDataTimer();
@@ -148,6 +151,8 @@ private:
 
 private:
     Ui::MainWindow *ui;
+    int m_iArgc;
+    char** m_pArgv;
     QTimer*             m_pPipeOutDataTimer;
     QTimer*             m_pPlaybackTimer;
     QTimer*             m_pPlayerTimer;
@@ -168,7 +173,7 @@ private:
     QLabel*             m_pLabelEndTime;
     DoubleSlider*       m_pSliderPlayer;
 
-	QPushButton*        m_pBtnRepeat;
+    QPushButton*        m_pBtnRepeat;
     QPushButton*        m_pBtnSaveFile;
     QPushButton*        m_pBtnSaveBmp;
     bool                m_bFirstShowPBBoard;
@@ -189,6 +194,9 @@ private:
     bool                m_bAutoAdjustBrightness;
     std::string         m_strPlayingBinName;
     QLabel*             m_pLabelSpecial;
+    GLWidget*           pWidget1;
+    GLWidget*           pWidget2;
+
 };
 
 

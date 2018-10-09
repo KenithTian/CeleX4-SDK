@@ -64,7 +64,7 @@ public:
 
 private:
 	std::list<CeleX4DataManager::emDataType> m_listDataType;
-	CeleX4DataManager*       m_pObserver;
+	CeleX4DataManager*      m_pObserver;
 	CeleX4ProcessedData*    m_pCX4ProcessedData;
 };
 

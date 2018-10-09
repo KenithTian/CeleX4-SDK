@@ -1,4 +1,20 @@
-﻿#ifndef CELEX_H
+﻿/*
+* Copyright (c) 2017-2018  CelePixel Technology Co. Ltd.  All rights reserved.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+
+#ifndef CELEX_H
 #define CELEX_H
 
 #ifdef _WIN32
@@ -35,7 +51,9 @@ enum emEventPicMode {
 	EventSuperimposedPic = 3,
 	EventDenoisedBinaryPic = 4,
 	EventDenoisedGrayPic = 5,
-	EventCountPic = 6
+	EventCountPic = 6,
+	EventDenoisedByTimeBinaryPic = 7,
+	EventDenoisedByTimeGrayPic = 8
 };
 
 //for bin file reader
@@ -143,7 +161,7 @@ public:
 
 	void setThreshold(uint32_t value);
 	uint32_t getThreshold();
-	
+
 	void setContrast(uint32_t value);
 	uint32_t getContrast();
 
@@ -169,7 +187,7 @@ public:
 
 	//--- Set the methods of creating pic frame Interfaces ---
 	void setFullPicFrameTime(uint32_t msec); //unit: millisecond
-        uint32_t getFullPicFrameTime();
+	uint32_t getFullPicFrameTime();
 	void setEventFrameTime(uint32_t msec); //unit: millisecond
 	uint32_t getEventFrameTime();
 	void setFEFrameTime(uint32_t msec); //unit: millisecond
@@ -226,7 +244,7 @@ public:
 	std::vector<ControlSliderInfo> getSensorControlList();
 
 	void pauseThread(bool pause);
-	
+
 	uint32_t getPageCount();
 	uint32_t getMeanIntensity();
 
@@ -235,6 +253,9 @@ public:
 
 	std::vector<int> getDataLengthPerSpecial();
 	std::vector<unsigned long> getEventCountListPerSpecial();
+
+	bool denoisingByTimeInterval(std::vector<EventData> vec, cv::Mat &mat);
+	bool denoisingAndCompresing(std::vector<EventData> vec, float compressRatio, cv::Mat &mat);
 
 private:
 	void initializeFPGA(uint32_t value = 0);
@@ -274,6 +295,16 @@ private:
 	bool                             m_bAutoAdjustBrightness;
 	//
 	std::ifstream					 m_ifstreamBin;
+
+	//for denoising and compressing
+	long							m_lPreT;
+	float							m_fTSum;
+	long							m_lCount;
+	float							m_fDenoiseCount;
+	float							m_fCompressCount;
+	int								m_iDelta;
+	float							m_fTao;
+	cv::Mat							m_MatCompressTemplateImg;
 };
 
 #endif // CELEX_H

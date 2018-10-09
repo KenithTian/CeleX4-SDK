@@ -41,6 +41,13 @@ CeleX4::CeleX4()
 	, m_lPlaybackFileSize(0)
 	, m_bReadDataByAPICore(false)
 	, m_bAutoAdjustBrightness(false)
+	, m_lPreT(0)
+	, m_fTSum(0)
+	, m_lCount(0)
+	, m_fDenoiseCount(0)
+	, m_fCompressCount(0)
+	, m_iDelta(100)
+	, m_fTao(0)
 {
 	m_pFrontPanel = FrontPanel::getInstance();
 
@@ -314,7 +321,9 @@ unsigned char *CeleX4::getEventPicBuffer(emEventPicMode mode)
 		EventSuperimposedPic == mode ||
 		EventDenoisedBinaryPic == mode ||
 		EventDenoisedGrayPic == mode ||
-		EventCountPic == mode)
+		EventCountPic == mode ||
+		EventDenoisedByTimeBinaryPic == mode ||
+		EventDenoisedByTimeGrayPic == mode)
 	{
 		return pSensorData->getEventPicBuffer(mode);
 	}
@@ -643,7 +652,7 @@ bool CeleX4::openPlaybackFile(string filePath)
 		m_uiClockRate = 25;
 		m_pDataProcessThread->getDataProcessor()->setClockRate(m_uiClockRate);
 	}
-	//cout << "sensor mode = " << (int)header[7] << ", clock = " << (int)header[6] << endl;
+	cout << "sensor mode = " << (int)header[7] << ", clock = " << (int)header[6] << endl;
 	return true;
 }
 
@@ -1065,9 +1074,23 @@ bool CeleX4::getEventDataVector(std::vector<EventData> &vector)
 	{
 		return false;
 	}*/
-	if (g_vectorEventData.size() > 0)
+	if (g_frameData.vecEventData.size() > 0)
 	{
-		vector.swap(g_vectorEventData);
+		vector.swap(g_frameData.vecEventData);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool CeleX4::getEventDataVector(std::vector<EventData> &vector, uint64_t& frameNo)
+{
+	if (g_frameData.vecEventData.size() > 0)
+	{
+		vector.swap(g_frameData.vecEventData);
+		frameNo = g_frameData.frameNo;
 		return true;
 	}
 	else
@@ -1245,4 +1268,132 @@ void CeleX4::convertBinToAVI(std::string binFile, cv::VideoWriter writer)
 void CeleX4::enableAutoAdjustBrightness(bool enable)
 {
 	m_bAutoAdjustBrightness = enable;
+}
+
+int CeleX4::getIMUDataSize()
+{
+	return m_pDataProcessThread->getDataProcessor()->getIMUDataSize();
+}
+
+int CeleX4::getIMUData(int count, std::vector<IMUData>& data)
+{
+	return m_pDataProcessThread->getDataProcessor()->getIMUData(count, data);
+}
+
+void CeleX4::setIMUIntervalTime(uint32_t value)
+{
+	//excuteCommand("SetIMU Interval Time");
+	if (value > 255)
+		value = 255;
+	value = value << 24;
+	FrontPanel::getInstance()->wireIn(0x02, value, 0xFF000000);
+	//FrontPanel::getInstance()->wait(1);
+	cout << "Address: " << 0x02 << "; Value: " << value << "; Mask: " << 0xFF000000 << endl;
+}
+
+bool CeleX4::denoisingByTimeInterval(std::vector<EventData> vec, cv::Mat &mat)
+{
+	cv::Mat preImg = cv::Mat::zeros(640, 768, CV_32FC1);
+
+	if (!vec.empty())
+	{
+		mat = cv::Mat::zeros(cv::Size(768, 640), CV_8UC1);
+
+		for (int t = 0; t < vec.size() - 1; ++t)
+		{
+			if (vec[t].row == 0 || vec[t].row == 639 || vec[t].col == 0 || vec[t].col == 767)
+				continue;
+
+			float d1 = preImg.at<float>(vec[t].row, vec[t].col);
+			float d2 = preImg.at<float>(vec[t].row, vec[t].col + 1);
+			float d3 = preImg.at<float>(vec[t].row + 1, vec[t].col);
+			float d4 = preImg.at<float>(vec[t].row, vec[t].col - 1);
+			float d5 = preImg.at<float>(vec[t].row - 1, vec[t].col);
+
+			float deltaT = 5 * (vec[t].t + m_lPreT) - d1 - d2 - d3 - d4 - d5;
+
+			m_lCount += 1;
+			m_fTSum += deltaT;
+
+			if (deltaT < m_fTSum / m_lCount / 2.0)
+			{
+				mat.at<uchar>(640 - vec[t].row - 1, 768 - vec[t].col - 1) = 255;
+			}
+			preImg.at<float>(vec[t].row, vec[t].col) = vec[t].t + m_lPreT;
+			//cout << preImg.at<float>(vec[t].row, vec[t].col) << endl;
+		}
+		m_lPreT += vec[vec.size() - 1].t;
+		return true;
+	}
+	if (m_fTSum > FLT_MAX || m_fTSum < FLT_MIN)
+	{
+		m_lCount = 0;
+		m_fTSum = 0.0;
+		m_lPreT = 0;
+		preImg = cv::Mat::zeros(640, 768, CV_32FC1);
+	}
+}
+
+bool CeleX4::denoisingAndCompresing(std::vector<EventData> vec, float compressRatio, cv::Mat &mat)
+{
+	cv::Mat preImg = cv::Mat::zeros(640, 768, CV_32FC1);
+	m_MatCompressTemplateImg = cv::Mat::zeros(640, 768, CV_32FC1);
+
+	if (!vec.empty())
+	{
+		mat = cv::Mat::zeros(cv::Size(768, 640), CV_8UC1);
+
+		for (int t = 0; t < vec.size() - 1; ++t)
+		{
+			if (vec[t].row == 0 || vec[t].row == 639 || vec[t].col == 0 || vec[t].col == 767)
+				continue;
+
+			float d1 = preImg.at<float>(vec[t].row, vec[t].col);
+			float d2 = preImg.at<float>(vec[t].row, vec[t].col + 1);
+			float d3 = preImg.at<float>(vec[t].row + 1, vec[t].col);
+			float d4 = preImg.at<float>(vec[t].row, vec[t].col - 1);
+			float d5 = preImg.at<float>(vec[t].row - 1, vec[t].col);
+
+			float deltaT = 5 * (vec[t].t + m_lPreT) - d1 - d2 - d3 - d4 - d5;
+
+			m_lCount += 1;
+			m_fTSum += deltaT;
+
+			if (deltaT < m_fTSum / m_lCount / 2.0)
+			{
+				m_fDenoiseCount += 1;
+				if (m_fCompressCount / m_fDenoiseCount > compressRatio)
+				{
+					m_fTao = m_fTao + m_iDelta;
+				}
+				else
+				{
+					m_fTao = m_fTao - m_iDelta;
+					if (m_fTao < 0)
+					{
+						m_fTao = 0;
+					}
+				}
+				//cout << tao << endl;		
+				//cout << "tao: "<<tao << endl;
+				if (vec[t].t + m_lPreT >= m_MatCompressTemplateImg.at<float>(vec[t].row, vec[t].col) + m_fTao)
+				{
+					m_fCompressCount = m_fCompressCount + 1;
+					mat.at<uchar>(640 - vec[t].row - 1, 768 - vec[t].col - 1) = 255;
+					m_MatCompressTemplateImg.at<float>(vec[t].row, vec[t].col) = vec[t].t + m_lPreT;
+				}
+			}
+			preImg.at<float>(vec[t].row, vec[t].col) = vec[t].t + m_lPreT;
+			//cout << preImg.at<float>(vec[t].row, vec[t].col) << endl;
+		}
+		m_lPreT += vec[vec.size() - 1].t;
+		return true;
+	}
+	if (m_fTSum > FLT_MAX || m_fTSum < FLT_MIN)
+	{
+		m_lCount = 0;
+		m_fTSum = 0.0;
+		m_lPreT = 0;
+		preImg = cv::Mat::zeros(640, 768, CV_32FC1);
+	}
 }

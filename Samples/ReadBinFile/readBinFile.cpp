@@ -17,7 +17,7 @@
 #include <opencv2/opencv.hpp>
 #include <celex4/celex4.h>
 #define FPN_PATH    "../Samples/config/FPN.txt"
-#define BIN_FILE	"Test.bin"	//your bin file path
+#define BIN_FILE	"BIN"	//your bin file path
 
 int main()
 {
@@ -25,7 +25,6 @@ int main()
 
 	if (pCelex == NULL)
 		return 0;
-
 	pCelex->openPlaybackFile(BIN_FILE);	//open the bin file
 	pCelex->setFpnFile(FPN_PATH);
 	pCelex->setEventFrameParameters(60, 60);	//frame time and interval time just available for event mode
@@ -38,7 +37,7 @@ int main()
 		if (pCelex->getAttributes(BIN_FILE).mode == FullPictureMode)	//if the bin file is fullpic mode
 		{
 			if (!pCelex->getFullPicMat().empty())
-			{
+			{				
 				cv::Mat fullPicMat = pCelex->getFullPicMat();
 				cv::imshow("FullPic", fullPicMat);
 			}

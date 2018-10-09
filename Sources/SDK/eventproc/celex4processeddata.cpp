@@ -30,6 +30,8 @@ CeleX4ProcessedData::CeleX4ProcessedData()
 	, m_pEventOpticalFlow(NULL)
 	, m_pEventOpticalFlowDirection(NULL)
 	, m_pEventOpticalFlowSpeed(NULL)
+	, m_pEventDenoisedByTimeBinaryPic(NULL)
+	, m_pEventDenoisedByTimeGrayPic(NULL)
 	, m_nMeanIntensity(0)
 {
 	m_pFullPicBuffer = new unsigned char[PIXELS_NUMBER];
@@ -43,6 +45,8 @@ CeleX4ProcessedData::CeleX4ProcessedData()
 	m_pEventOpticalFlow = new unsigned char[PIXELS_NUMBER];
 	m_pEventOpticalFlowDirection = new unsigned char[PIXELS_NUMBER];
 	m_pEventOpticalFlowSpeed = new unsigned char[PIXELS_NUMBER];
+	m_pEventDenoisedByTimeBinaryPic = new unsigned char[PIXELS_NUMBER];
+	m_pEventDenoisedByTimeGrayPic = new unsigned char[PIXELS_NUMBER];
 }
 
 CeleX4ProcessedData::~CeleX4ProcessedData()

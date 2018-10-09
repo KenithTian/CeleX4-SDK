@@ -26,7 +26,7 @@ int main()
 	pCelex->openSensor("");
 	pCelex->setFpnFile(FPN_PATH);
 
-	emSensorMode sensorMode = EventMode; //EventMode, FullPic_Event_Mode and FullPictureMode
+	emSensorMode sensorMode = FullPictureMode; //EventMode, FullPic_Event_Mode and FullPictureMode
 	pCelex->setSensorMode(sensorMode);
 
 	int imgSize = 768 * 640;
@@ -59,6 +59,8 @@ int main()
 				memcpy(pEventBuffer, pCelex->getEventPicBuffer(EventBinaryPic), imgSize); //event binary pic
 				cv::Mat matFullPic(640, 768, CV_8UC1, pFullPicBuffer);
 				cv::Mat matEventPic(640, 768, CV_8UC1, pEventBuffer);
+				cv::Mat matEventPic(640, 768, CV_8UC1, pEventBuffer);
+
 				cv::imshow("Event-FullPic", matFullPic);
 				cv::imshow("Event-EventPic", matEventPic);
 				cvWaitKey(10);

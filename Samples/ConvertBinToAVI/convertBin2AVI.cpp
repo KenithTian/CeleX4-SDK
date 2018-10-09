@@ -16,7 +16,7 @@
 
 #include <opencv2/opencv.hpp>
 #include <celex4/celex4.h>
-#define BIN_FILE    "./Test.bin"	//your bin file path
+#define BIN_FILE    "BIN"	//your bin file path
 #define FPN_PATH    "../Samples/config/FPN.txt"
 
 int main()

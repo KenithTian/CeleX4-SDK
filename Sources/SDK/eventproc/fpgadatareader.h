@@ -18,10 +18,23 @@
 #define FPGADATAREADER_H
 
 #include "../base/hhconstants.h"
+#include "../include/celex4/celex4.h"
+#include <stdint.h>
 
 class FPGADataReader
 {
 public:
+	enum IMUDATAType {
+		NO_IMU_DATA = 0,
+		GYROS_A_DATA = 1,
+		GYROS_B_DATA = 2,
+		ACC_A_DATA = 3,
+		ACC_B_DATA = 4,
+		GYROS_OFST_A_DATA = 5,
+		GYROS_OFST_B_DATA = 6,
+		ACC_OFST_A_DATA = 7,
+		ACC_OFST_B_DATA = 8
+	};
     static unsigned int getColumn(unsigned char data[EVENT_SIZE]);
     static unsigned int getRow(unsigned char data[EVENT_SIZE]);
     static unsigned int getTimeStamp(unsigned char data[EVENT_SIZE]);
@@ -34,12 +47,21 @@ public:
     static unsigned int getEventType()  { return s_uiEventType; }
     static unsigned int getSpecialEventType() { return s_uiSpecialEventType; }
 
+	static void setEventCounter(uint32_t counter) { s_uiEventTCounter = counter; }
+
     //check event type
     static bool isForcefirePixel(unsigned char data[EVENT_SIZE]); // column event from force fire, carrying ADC
     static bool isColumnEvent(unsigned char data[EVENT_SIZE]);
     static bool isRowEvent(unsigned char data[EVENT_SIZE]);
     static bool isSpecialEvent(unsigned char data[EVENT_SIZE]);
 	static unsigned int MapTime(unsigned char data[EVENT_SIZE]);
+	//IMU data
+	static IMUDATAType isIMUData(unsigned char data[4]);
+	static int16_t getIMU_X(unsigned char data[4]);
+	static int16_t getIMU_Y(unsigned char data[4]);
+	static int16_t getIMU_Z(unsigned char data[4]);
+	static uint16_t getIMU_T(unsigned char data[4]);
+	static IMUData getIMUData() { return s_IMUData; }
     
 private:
     static unsigned int  s_uiCurrentRow;
@@ -49,6 +71,11 @@ private:
     static unsigned int  s_uiMapT;
     static unsigned int  s_uiEventType;
     static unsigned int  s_uiSpecialEventType;
+	//IMU data
+	static int16_t       s_iLowGYROS_Y;
+	static uint16_t      s_uiHighGYROS_T;
+	static IMUData       s_IMUData;
+	static uint32_t      s_uiEventTCounter;
 };
 
 #endif // FPGADATAREADER_H

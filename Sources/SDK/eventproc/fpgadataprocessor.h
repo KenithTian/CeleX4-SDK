@@ -34,7 +34,8 @@ extern bool				isCreateImage;
 extern cv::VideoWriter  g_cvVideoWriterFullPic;
 extern cv::VideoWriter  g_cvVideoWriterEvent;
 extern bool				isReadBin;
-extern std::vector<EventData> g_vectorEventData;
+extern FrameData        g_frameData;
+extern uint64_t         g_ulEventFrameNo;
 
 typedef struct PixelData
 {
@@ -107,6 +108,10 @@ public:
 	int calculateDenoiseScore(unsigned char* pBuffer, unsigned int pos);
 	int calculateDenoiseScore(unsigned char* pBuffer, unsigned char* pBufferPre, unsigned int pos);
 
+	void denoisingByTimeInterval(std::vector<EventData> vec, unsigned char* binaryBuffer, emEventPicMode picMode);
+	int getIMUDataSize();
+	int getIMUData(int count, std::vector<IMUData>& data);
+
 private:
     void generateFPNimpl();
     void adjustBrightnessImpl();
@@ -118,6 +123,8 @@ private:
 	unsigned char*           m_pBufferMotion;  //for for ABC mode
 	unsigned char*           m_pBufferOpticalFlow; //for ABC mode
 	unsigned char*           m_pLastEventPicBuffer; //for denoise
+
+	uint16_t*                m_pLastADC;
 	//for fpn
     long*                    m_pFpnGenerationBuffer;
     int*                     m_pFpnBuffer;
@@ -178,7 +185,7 @@ private:
 	unsigned long            m_ulSpecialEventCount;
 	unsigned long            m_ulSpecialByteSize;
 
-	//----------------------------rh---------------------------------
+	//
 	std::ifstream			 m_ifstreamBin;
 	uint32_t				 m_uiTimeScale;
 	uint32_t				 m_uiTimeStamp;
@@ -186,6 +193,11 @@ private:
 
 	uint32_t				 m_uiEventCountStepSize;
 	std::vector<EventData>	 m_vectorEventData;
+
+	std::vector<IMUData>     m_vectorIMUData;
+	long preT = 0.0;
+	float tSum = 0.0;
+	long count = 0.0;
 };
 
 #endif // FPGADATAPROCESSOR_H

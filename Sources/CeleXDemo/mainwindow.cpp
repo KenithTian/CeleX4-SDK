@@ -105,21 +105,41 @@ void SensorDataObserver::onFrameDataUpdated(CeleX4ProcessedData* pSensorData)
                 pBuffer1 = pSensorData->getEventPicBuffer(EventAccumulatedPic);
         }
         else if (m_uiDisplayMode1 == 1)
-            pBuffer1 = pSensorData->getEventPicBuffer(EventBinaryPic);
+        {
+            if(m_emSensorMode == FullPic_Event_Mode)
+            {
+                pBuffer1 = pSensorData->getEventPicBuffer(EventBinaryPic);
+            }
+            else
+            {
+                pBuffer1 = pSensorData->getEventPicBuffer(EventDenoisedByTimeBinaryPic);
+            }
+        }
         else if (m_uiDisplayMode1 == 2)
-            pBuffer1 = pSensorData->getEventPicBuffer(EventGrayPic);
+        {
+            if(m_emSensorMode == FullPic_Event_Mode)
+            {
+                pBuffer1 = pSensorData->getEventPicBuffer(EventGrayPic);
+            }
+            else
+            {
+                pBuffer1 = pSensorData->getEventPicBuffer(EventDenoisedByTimeGrayPic);
+            }
+        }
         else if (m_uiDisplayMode1 == 3)
             pBuffer1 = pSensorData->getEventPicBuffer(EventSuperimposedPic);
+        //        else if (m_uiDisplayMode1 == 4)
+        //            pBuffer1 = pSensorData->getEventPicBuffer(EventDenoisedBinaryPic);
+        //        else if (m_uiDisplayMode1 == 5)
+        //            pBuffer1 = pSensorData->getEventPicBuffer(EventDenoisedGrayPic);
         else if (m_uiDisplayMode1 == 4)
-            pBuffer1 = pSensorData->getEventPicBuffer(EventDenoisedBinaryPic);
+            pBuffer1 = pSensorData->getOpticalFlowPicBuffer();
         else if (m_uiDisplayMode1 == 5)
-            pBuffer1 = pSensorData->getEventPicBuffer(EventDenoisedGrayPic);
+            pBuffer1 = pSensorData->getOpticalFlowDirectionPicBuffer();
         else if (m_uiDisplayMode1 == 6)
-            pBuffer1 = pSensorData->getEventOpticalFlow();
-        else if (m_uiDisplayMode1 == 7)
-            pBuffer1 = pSensorData->getEventOpticalFlowDirection();
-        else if (m_uiDisplayMode1 == 8)
-            pBuffer1 = pSensorData->getEventOpticalFlowSpeed();
+            pBuffer1 = pSensorData->getOpticalFlowSpeedPicBuffer();
+        //        else if (m_uiDisplayMode1 == 9)
+        //            pBuffer1 = pSensorData->getEventPicBuffer(EventDenoisedByTimeBinaryPic);
 
         if (m_uiDisplayMode2 == 0)
         {
@@ -129,21 +149,39 @@ void SensorDataObserver::onFrameDataUpdated(CeleX4ProcessedData* pSensorData)
                 pBuffer2 = pSensorData->getEventPicBuffer(EventAccumulatedPic);
         }
         else if (m_uiDisplayMode2 == 1)
-            pBuffer2 = pSensorData->getEventPicBuffer(EventBinaryPic);
+        {
+            if(m_emSensorMode == FullPic_Event_Mode)
+            {
+                pBuffer2 = pSensorData->getEventPicBuffer(EventDenoisedBinaryPic);
+            }
+            else
+            {
+                pBuffer2 = pSensorData->getEventPicBuffer(EventDenoisedByTimeBinaryPic);
+            }
+        }
         else if (m_uiDisplayMode2 == 2)
-            pBuffer2 = pSensorData->getEventPicBuffer(EventGrayPic);
+        {
+            if(m_emSensorMode == FullPic_Event_Mode)
+            {
+                pBuffer2 = pSensorData->getEventPicBuffer(EventDenoisedGrayPic);
+            }
+            else
+            {
+                pBuffer2 = pSensorData->getEventPicBuffer(EventDenoisedByTimeGrayPic);
+            }
+        }
         else if (m_uiDisplayMode2 == 3)
             pBuffer2 = pSensorData->getEventPicBuffer(EventSuperimposedPic);
+        //        else if (m_uiDisplayMode2 == 4)
+        //            pBuffer2 = pSensorData->getEventPicBuffer(EventDenoisedBinaryPic);
+        //        else if (m_uiDisplayMode2 == 5)
+        //            pBuffer2 = pSensorData->getEventPicBuffer(EventDenoisedGrayPic);
         else if (m_uiDisplayMode2 == 4)
-            pBuffer2 = pSensorData->getEventPicBuffer(EventDenoisedBinaryPic);
+            pBuffer2 = pSensorData->getOpticalFlowPicBuffer();
         else if (m_uiDisplayMode2 == 5)
-            pBuffer2 = pSensorData->getEventPicBuffer(EventDenoisedGrayPic);
+            pBuffer2 = pSensorData->getOpticalFlowDirectionPicBuffer();
         else if (m_uiDisplayMode2 == 6)
-            pBuffer2 = pSensorData->getEventOpticalFlow();
-        else if (m_uiDisplayMode2 == 7)
-            pBuffer2 = pSensorData->getEventOpticalFlowDirection();
-        else if (m_uiDisplayMode2 == 8)
-            pBuffer2 = pSensorData->getEventOpticalFlowSpeed();
+            pBuffer2 = pSensorData->getOpticalFlowSpeedPicBuffer();
     }
 
     if (m_bRealtimeDisplay)
@@ -154,7 +192,7 @@ void SensorDataObserver::onFrameDataUpdated(CeleX4ProcessedData* pSensorData)
     {
         //cout << "m_pFullPicQueue->getLength = " << m_pFullPicQueue->getLength() << endl;
         if (m_pFullPicQueue->getLength() != 0 &&
-            m_pFullPicQueue->getLength() >= (m_pFullPicQueue->getCapacity()-10))
+                m_pFullPicQueue->getLength() >= (m_pFullPicQueue->getCapacity()-10))
         {
             m_bCreatingFramePaused = true;
             m_pWindow->pauseThread(true);
@@ -442,7 +480,7 @@ void SensorDataObserver::updateImage(unsigned char *pBuffer1, unsigned char *pBu
                         *(pp2+2) = value;
                     }
                 }
-                else if (m_uiDisplayMode2 == 7) //OpticalFlow direction
+                else if (m_uiDisplayMode2 == 5) //OpticalFlow direction
                 {
                     if (0 == value)
                     {
@@ -481,7 +519,7 @@ void SensorDataObserver::updateImage(unsigned char *pBuffer1, unsigned char *pBu
                         *(pp2+2) = 0;
                     }
                 }
-                else if (m_uiDisplayMode2 == 6 || m_uiDisplayMode2 == 8) //OpticalFlow frame and speed
+                else if (m_uiDisplayMode2 == 4 || m_uiDisplayMode2 == 6) //OpticalFlow frame and speed
                 {
                     if (0 == value)
                     {
@@ -625,7 +663,7 @@ void SensorDataObserver::onUpdateDisplay()
 }
 
 //-------- MainWindow --------
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(int argc, char *argv[],QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::MainWindow)
     , m_bFirstShowPBBoard(true)
@@ -644,6 +682,10 @@ MainWindow::MainWindow(QWidget *parent)
     , m_bGlobalLengthSet(false)
     , m_bAutoAdjustBrightness(false)
 {
+    pWidget1 = new GLWidget(this);
+    pWidget2 = new GLWidget(this);
+    m_iArgc = argc;
+    m_pArgv = argv;
     ui->setupUi(this);
     this->setStyleSheet("background-color: rgb(200, 200, 200); ");
     move(100, 30);
@@ -663,7 +705,7 @@ MainWindow::MainWindow(QWidget *parent)
         qDebug() << "Can't load FPN.txt or the file is invalid!";
     }
 
-    m_pCelexSensor->setEventFrameTime(60);
+    m_pCelexSensor->setEventFrameTime(30);
 
     //create read sensor data timer
     m_pPipeOutDataTimer = new QTimer(this);
@@ -698,6 +740,12 @@ MainWindow::MainWindow(QWidget *parent)
     QHBoxLayout* layoutPic = new QHBoxLayout;
     layoutPic->addWidget(m_pSensorDataObserver);
 
+    //    QHBoxLayout* gl = new QHBoxLayout;
+    //    gl->addWidget(pWidget1);
+    //    gl->addStretch();
+    //    gl->addWidget(pWidget2);
+    //    gl->addStretch();
+
     QVBoxLayout* pMainLayout = new QVBoxLayout;
     pMainLayout->addLayout(layoutBtn);
     pMainLayout->addLayout(layoutSlider);
@@ -709,9 +757,12 @@ MainWindow::MainWindow(QWidget *parent)
     pMainLayout->setStretchFactor(layoutPic, 12);
     this->setLayout(pMainLayout);
 
+    //    pWidget1->raise();
+    //    pWidget2->raise();
     m_pSensorDataObserver->raise();
     m_pComboBoxModeText1->raise();
     m_pComboBoxModeText2->raise();
+
 
     this->showMaximized();
 
@@ -804,7 +855,7 @@ void MainWindow::setRecording(bool bStart, int type)
 
         if (FullPictureMode == m_pCelexSensor->getSensorMode())
         {
-            qstrName = "_F_";
+            qstrName += "_F_";
             qstrNameF += "_F_";
             qstrNameF += QString::number(m_pCelexSensor->getClockRate());
         }
@@ -1002,7 +1053,7 @@ void MainWindow::createSliders(QGridLayout* layout)
             HHSliderWidget* pSlider = new HHSliderWidget(this, min, max, step, value, 400, this);
             pSlider->setBiasType(name);
             pSlider->setDisplayName(strDisplayNameList.at(index));
-            pSlider->setObjectName(QString::fromStdString(name));      
+            pSlider->setObjectName(QString::fromStdString(name));
             layout->addWidget(pSlider, row[index], col[index]);
             ++index;
         }
@@ -1098,22 +1149,22 @@ void MainWindow::displayPlaybackBoard(bool display)
         m_pBtnRepeat = new QPushButton("Repeat Off", m_pWidgetBg);
         m_pBtnRepeat->setGeometry(650, 40, 100, 30);
         m_pBtnRepeat->setStyleSheet("QPushButton {background-color: #EEEEEE; font: "+qsFontSize+" Calibri; "
-                                    "border-style: outset; border-width: 2px; border-radius: 10px; border-color: #FFFFFF;} "
-                                    "QPushButton:pressed {background: #992F6F; }");
+                                                                                                "border-style: outset; border-width: 2px; border-radius: 10px; border-color: #FFFFFF;} "
+                                                                                                "QPushButton:pressed {background: #992F6F; }");
         connect(m_pBtnRepeat, SIGNAL(released()), this, SLOT(onBtnRepeatReleased()));
 
         m_pBtnSaveFile = new QPushButton("Save Bin File", m_pWidgetBg);
         m_pBtnSaveFile->setGeometry(770, 40, 120, 30);
         m_pBtnSaveFile->setStyleSheet("QPushButton {background-color: #EEEEEE; font: "+qsFontSize+" Calibri; "
-                                      "border-style: outset; border-width: 2px; border-radius: 10px; border-color: #FFFFFF;} "
-                                      "QPushButton:pressed {background: #992F6F; }");
+                                                                                                  "border-style: outset; border-width: 2px; border-radius: 10px; border-color: #FFFFFF;} "
+                                                                                                  "QPushButton:pressed {background: #992F6F; }");
         connect(m_pBtnSaveFile, SIGNAL(released()), this, SLOT(onBtnSaveReleased()));
 
         m_pBtnSaveBmp = new QPushButton("Start Saving Bmp", m_pWidgetBg);
         m_pBtnSaveBmp->setGeometry(910, 40, 150, 30);
         m_pBtnSaveBmp->setStyleSheet("QPushButton {background-color: #EEEEEE; font: "+qsFontSize+" Calibri; "
-                                     "border-style: outset; border-width: 2px; border-radius: 10px; border-color: #FFFFFF;} "
-                                     "QPushButton:pressed {background: #992F6F; }");
+                                                                                                 "border-style: outset; border-width: 2px; border-radius: 10px; border-color: #FFFFFF;} "
+                                                                                                 "QPushButton:pressed {background: #992F6F; }");
         connect(m_pBtnSaveBmp, SIGNAL(released()), this, SLOT(onBtnSaveBmpReleased()));
 
         HHSliderWidget* pSlider1 = new HHSliderWidget(m_pWidgetBg, 1, 200, 200, 60, 400, this);
@@ -1237,11 +1288,11 @@ void MainWindow::onButtonClicked(int index)
     switch (index)
     {
     case 0:
-        m_pCelexSensor->resetSensorAndFPGA();
+        //        m_pCelexSensor->resetSensorAndFPGA();
         break;
 
     case 1:
-         m_pCelexSensor->resetFPGA();
+        m_pCelexSensor->resetFPGA();
         break;
 
     case 2:
@@ -1445,14 +1496,14 @@ void MainWindow::onBtnRotateUDReleased()
 
 void MainWindow::onBtnRepeatReleased()
 {
-	if (m_bRepeatPlay)
-	{
+    if (m_bRepeatPlay)
+    {
         m_pBtnRepeat->setText("Repeat Off");
-	}
-	else
-	{
+    }
+    else
+    {
         m_pBtnRepeat->setText("Repeat On");
-	}
+    }
     m_bRepeatPlay = !m_bRepeatPlay;
 }
 
@@ -1627,12 +1678,24 @@ void MainWindow::onDisplayMode1Changed(int mode)
 {
     m_uiDisplayMode1 = mode;
     m_pSensorDataObserver->setDisplayMode1(mode);
-    if (mode > 5)
+    if (mode > 3)
         m_pCelexSensor->enableOpticalFlow(true);
     else
     {
         if (m_uiDisplayMode2 < 6)
             m_pCelexSensor->enableOpticalFlow(false);
+    }
+    if (mode == 7)
+    {
+        pWidget1 = new GLWidget(this);
+        pWidget1->setGeometry(21,220,768,640);
+        pWidget1->show();
+        //        pWidget1.setGeometry(10,400,768,640);
+        //        pWidget1.show();
+    }
+    else
+    {
+        pWidget1->hide();
     }
 }
 
@@ -1640,12 +1703,25 @@ void MainWindow::onDisplayMode2Changed(int mode)
 {
     m_uiDisplayMode2 = mode;
     m_pSensorDataObserver->setDisplayMode2(mode);
-    if (mode > 5)
+    if (mode > 3)
         m_pCelexSensor->enableOpticalFlow(true);
     else
     {
         if (m_uiDisplayMode1 < 6)
             m_pCelexSensor->enableOpticalFlow(false);
+    }
+    if (mode == 7)
+    {
+        pWidget2 = new GLWidget(this);
+        pWidget2->setGeometry(970,220,768,640);
+        pWidget2->show();
+        //        pWidget2.setGeometry(800,400,768,640);
+        //        pWidget2.show();
+    }
+    else
+    {
+        pWidget2->hide();
+        //        pWidget2.hide();
     }
 }
 
@@ -1678,8 +1754,8 @@ void MainWindow::onPlaybackTimer()
 
 MainWindow::~MainWindow()
 {
-//    if (m_pCelexSensor)
-//        delete m_pCelexSensor;
+    //    if (m_pCelexSensor)
+    //        delete m_pCelexSensor;
     delete ui;
 }
 
@@ -1726,6 +1802,15 @@ void MainWindow::disableSlider(QString objName, bool disable)
     }
 }
 
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    event->ignore();
+    if(event->key()== Qt::Key_R)
+    {
+        qDebug() <<"ooooooo";
+    }
+}
+
 void MainWindow::setDisplayMode(emSensorMode mode)
 {
     if (mode == FullPictureMode)
@@ -1743,11 +1828,13 @@ void MainWindow::setDisplayMode(emSensorMode mode)
         m_pComboBoxModeText1->insertItem(1, "EventMode - Binary Pic");
         m_pComboBoxModeText1->insertItem(2, "EventMode - Gray Pic");
         m_pComboBoxModeText1->insertItem(3, "EventMode - Superimposed Pic");
-        m_pComboBoxModeText1->insertItem(4, "EventMode - Denoised Binary Pic");
-        m_pComboBoxModeText1->insertItem(5, "EventMode - Denoised Gray Pic");
-        m_pComboBoxModeText1->insertItem(6, "EventMode - OpticalFlow Pic");
-        m_pComboBoxModeText1->insertItem(7, "EventMode - OpticalFlow Direction Pic");
-        m_pComboBoxModeText1->insertItem(8, "EventMode - OpticalFlow Speed Pic");
+        //        m_pComboBoxModeText1->insertItem(4, "EventMode - Denoised Binary Pic");
+        //        m_pComboBoxModeText1->insertItem(5, "EventMode - Denoised Gray Pic");
+        m_pComboBoxModeText1->insertItem(4, "EventMode - OpticalFlow Pic");
+        m_pComboBoxModeText1->insertItem(5, "EventMode - OpticalFlow Direction Pic");
+        m_pComboBoxModeText1->insertItem(6, "EventMode - OpticalFlow Speed Pic");
+        m_pComboBoxModeText1->insertItem(7, "EventMode - 3D Viewer");
+
         m_pComboBoxModeText1->setCurrentText("EventMode - Accumulated Pic");
 
         m_pComboBoxModeText2->clear();
@@ -1755,11 +1842,13 @@ void MainWindow::setDisplayMode(emSensorMode mode)
         m_pComboBoxModeText2->insertItem(1, "EventMode - Binary Pic");
         m_pComboBoxModeText2->insertItem(2, "EventMode - Gray Pic");
         m_pComboBoxModeText2->insertItem(3, "EventMode - Superimposed Pic");
-        m_pComboBoxModeText2->insertItem(4, "EventMode - Denoised Binary Pic");
-        m_pComboBoxModeText2->insertItem(5, "EventMode - Denoised Gray Pic");
-        m_pComboBoxModeText2->insertItem(6, "EventMode - OpticalFlow Pic");
-        m_pComboBoxModeText2->insertItem(7, "EventMode - OpticalFlow Direction Pic");
-        m_pComboBoxModeText2->insertItem(8, "EventMode - OpticalFlow Speed Pic");
+        //        m_pComboBoxModeText2->insertItem(4, "EventMode - Denoised Binary Pic");
+        //        m_pComboBoxModeText2->insertItem(5, "EventMode - Denoised Gray Pic");
+        m_pComboBoxModeText2->insertItem(4, "EventMode - OpticalFlow Pic");
+        m_pComboBoxModeText2->insertItem(5, "EventMode - OpticalFlow Direction Pic");
+        m_pComboBoxModeText2->insertItem(6, "EventMode - OpticalFlow Speed Pic");
+        m_pComboBoxModeText2->insertItem(7, "EventMode - 3D Viewer");
+
         m_pComboBoxModeText2->setCurrentText("EventMode - Binary Pic");
         //
         m_pSensorDataObserver->setSensorMode(EventMode);
@@ -1772,11 +1861,11 @@ void MainWindow::setDisplayMode(emSensorMode mode)
         m_pComboBoxModeText1->insertItem(2, "FullPicEventMode - Gray Pic");
         m_pComboBoxModeText1->insertItem(3, "FullPicEventMode - Superimposed Pic");
 
-        m_pComboBoxModeText1->insertItem(4, "FullPicEventMode - Denoised Binary Pic");
-        m_pComboBoxModeText1->insertItem(5, "FullPicEventMode - Denoised Gray Pic");
-        m_pComboBoxModeText1->insertItem(6, "FullPicEventMode - OpticalFlow Pic");
-        m_pComboBoxModeText1->insertItem(7, "FullPicEventMode - OpticalFlow Direction Pic");
-        m_pComboBoxModeText1->insertItem(8, "FullPicEventMode - OpticalFlow Speed Pic");
+        //        m_pComboBoxModeText1->insertItem(4, "FullPicEventMode - Denoised Binary Pic");
+        //        m_pComboBoxModeText1->insertItem(5, "FullPicEventMode - Denoised Gray Pic");
+        m_pComboBoxModeText1->insertItem(4, "FullPicEventMode - OpticalFlow Pic");
+        m_pComboBoxModeText1->insertItem(5, "FullPicEventMode - OpticalFlow Direction Pic");
+        m_pComboBoxModeText1->insertItem(6, "FullPicEventMode - OpticalFlow Speed Pic");
         m_pComboBoxModeText1->setCurrentText("FullPicEventMode - Full Pic");
 
         m_pComboBoxModeText2->clear();
@@ -1785,11 +1874,11 @@ void MainWindow::setDisplayMode(emSensorMode mode)
         m_pComboBoxModeText2->insertItem(2, "FullPicEventMode - Gray Pic");
         m_pComboBoxModeText2->insertItem(3, "FullPicEventMode - Superimposed Pic");
 
-        m_pComboBoxModeText2->insertItem(4, "FullPicEventMode - Denoised Binary Pic");
-        m_pComboBoxModeText2->insertItem(5, "FullPicEventMode - Denoised Gray Pic");
-        m_pComboBoxModeText2->insertItem(6, "FullPicEventMode - OpticalFlow Pic");
-        m_pComboBoxModeText2->insertItem(7, "FullPicEventMode - OpticalFlow Direction Pic");
-        m_pComboBoxModeText2->insertItem(8, "FullPicEventMode - OpticalFlow Speed Pic");
+        //        m_pComboBoxModeText2->insertItem(4, "FullPicEventMode - Denoised Binary Pic");
+        //        m_pComboBoxModeText2->insertItem(5, "FullPicEventMode - Denoised Gray Pic");
+        m_pComboBoxModeText2->insertItem(4, "FullPicEventMode - OpticalFlow Pic");
+        m_pComboBoxModeText2->insertItem(5, "FullPicEventMode - OpticalFlow Direction Pic");
+        m_pComboBoxModeText2->insertItem(6, "FullPicEventMode - OpticalFlow Speed Pic");
         m_pComboBoxModeText2->setCurrentText("FullPicEventMode - Binary Pic");
 
         m_pSensorDataObserver->setSensorMode(FullPic_Event_Mode);

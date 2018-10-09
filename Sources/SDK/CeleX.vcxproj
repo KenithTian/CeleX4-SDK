@@ -141,6 +141,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>./build/Windows/x86/release/CeleX.dll</OutputFile>
       <ImportLibrary>./build/Windows/x86/release/CeleX.lib</ImportLibrary>
+      <AdditionalDependencies>opencv_world330.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

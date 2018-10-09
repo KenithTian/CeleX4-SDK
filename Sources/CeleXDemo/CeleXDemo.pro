@@ -5,6 +5,8 @@
 #-------------------------------------------------
 
 QT       += core gui
+QT       += opengl
+LIBS     += -lopengl32
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -12,9 +14,9 @@ TARGET = CeleXDemo
 TEMPLATE = app
 
 win32 {
-    INCLUDEPATH += D:/opencv/build/include \
-                   D:/Program Files/opencv/build/include/opencv \
-                   D:/Program Files/opencv/build/include/opencv2
+    INCLUDEPATH += $$quote(D:/Program Files/opencv/build/include) \
+                   $$quote(D:/Program Files/opencv/build/include/opencv) \
+                   $$quote(D:/Program Files/opencv/build/include/opencv2)
 }
 else {
 
@@ -49,7 +51,8 @@ SOURCES += main.cpp\
     mainwindow.cpp \
     dataqueue.cpp \
     doubleslider.cpp \
-    hhsliderwidget.cpp
+    hhsliderwidget.cpp \
+    glwidget.cpp
 
 HEADERS  += mainwindow.h \
     okFrontPanelDLL.h \
@@ -58,6 +61,7 @@ HEADERS  += mainwindow.h \
     hhsliderwidget.h \
     hhconstants.h \
     ui_mainwindow.h \
+    glwidget.h
 
 FORMS += \
     mainwindow.ui
@@ -93,3 +97,9 @@ else {
 RESOURCES += \
     images.qrc
 
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/glut/ -lglut64
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/glut/ -lglut64d
+else:unix: LIBS += -L$$PWD/glut/ -lglut64
+
+INCLUDEPATH += $$PWD/glut
+DEPENDPATH += $$PWD/glut

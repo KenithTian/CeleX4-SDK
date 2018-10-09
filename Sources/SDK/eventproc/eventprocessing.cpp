@@ -23,8 +23,8 @@ namespace dvs {
 	class EventProcessing
 	{
 	public:
-		EventProcessing(){ }
-		~EventProcessing(){ }
+		EventProcessing() { }
+		~EventProcessing() { }
 
 		static int calculateDenoiseScore(const cv::Mat& currImg, int row, int col)
 		{
@@ -46,9 +46,9 @@ namespace dvs {
 				for (int j = col - 1; j < col + 2; ++j)
 				{
 					int index = i * PIXELS_PER_COL + j;
-					if (index < 0 || index == row*PIXELS_PER_COL + col || index >= PIXELS_NUMBER)
+					if (index < 0 || index == row * PIXELS_PER_COL + col || index >= PIXELS_NUMBER)
 						continue;
-					if (currImg.ptr<uchar>(index / PIXELS_PER_COL)[index%PIXELS_PER_COL] > 0)
+					if (currImg.ptr<uchar>(index / PIXELS_PER_COL)[index % PIXELS_PER_COL] > 0)
 						++count1;
 					else
 						++count2;
@@ -62,10 +62,10 @@ namespace dvs {
 					return 0;
 			}
 			//calculate previous image 
-			int index1 = (row - 1)*PIXELS_PER_COL + col;
-			int index2 = row*PIXELS_PER_COL + col - 1;
-			int index3 = row*PIXELS_PER_COL + col + 1;
-			int index4 = (row + 1)*PIXELS_PER_COL + col;
+			int index1 = (row - 1) * PIXELS_PER_COL + col;
+			int index2 = row * PIXELS_PER_COL + col - 1;
+			int index3 = row * PIXELS_PER_COL + col + 1;
+			int index4 = (row + 1) * PIXELS_PER_COL + col;
 			int aa[4] = { index1, index2, index3, index4 };
 			int count3 = 0;
 			int count4 = 0;

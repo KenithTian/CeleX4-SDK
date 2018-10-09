@@ -31,6 +31,13 @@ public:
 	inline void setEventDataVector(std::vector<EventData> eventData) { m_vectorEventData.swap(eventData); }
 	inline std::vector<EventData> getEventDataVector() { return m_vectorEventData; }
 
+	inline void setFrameDataVector(FrameData frameData) { m_frameData = frameData; }
+	inline FrameData getFrameDataVector() { return m_frameData; }
+
+
+	inline void setIMUDataVector(std::vector<IMUData> IMUData) { m_vectorIMUData.swap(IMUData); }
+	inline std::vector<IMUData> getIMUDataVector() { return m_vectorIMUData; }
+
 	inline unsigned char* getFullPicBuffer() { return m_pFullPicBuffer; }
 	inline cv::Mat getFullPicMat() { return cv::Mat(cv::Size(768, 640), CV_8UC1, m_pFullPicBuffer); }
 	inline unsigned char* getEventPicBuffer(emEventPicMode mode)
@@ -50,7 +57,11 @@ public:
 		case EventDenoisedGrayPic:
 			return m_pEventDenoisedGrayPic;
 		case EventCountPic:
-			return m_pEventCountPic;;
+			return m_pEventCountPic;
+		case EventDenoisedByTimeBinaryPic:
+			return m_pEventDenoisedByTimeBinaryPic;
+		case EventDenoisedByTimeGrayPic:
+			return m_pEventDenoisedByTimeGrayPic;
 		default:
 			break;
 		}
@@ -74,6 +85,10 @@ public:
 			return cv::Mat(cv::Size(768, 640), CV_8UC1, m_pEventDenoisedGrayPic); 
 		case EventCountPic:
 			return cv::Mat(cv::Size(768, 640), CV_8UC1, m_pEventCountPic);
+		case EventDenoisedByTimeBinaryPic:
+			return cv::Mat(cv::Size(768, 640), CV_8UC1, m_pEventDenoisedByTimeBinaryPic);
+		case EventDenoisedByTimeGrayPic:
+			return cv::Mat(cv::Size(768, 640), CV_8UC1, m_pEventDenoisedByTimeGrayPic);
 		default:
 			break;
 		}
@@ -88,6 +103,8 @@ public:
 
 private:
 	std::vector<EventData> m_vectorEventData;	//-----------------------------
+	std::vector<IMUData> m_vectorIMUData;	//-----------------------------
+	FrameData			 m_frameData;
 	unsigned char*    m_pFullPicBuffer;
 	unsigned char*    m_pEventBinaryPic;
 	unsigned char*    m_pEventAccumulatedPic;
@@ -99,6 +116,9 @@ private:
 	unsigned char*    m_pEventOpticalFlowDirection;
 	unsigned char*    m_pEventOpticalFlowSpeed;
 	unsigned char*	  m_pEventCountPic; 
+	unsigned char*	  m_pEventDenoisedByTimeBinaryPic;
+	unsigned char*	  m_pEventDenoisedByTimeGrayPic;
+
 	int               m_nMeanIntensity;
 	emSensorMode	  m_emSensorMode;
 };

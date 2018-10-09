@@ -35,7 +35,9 @@ cv::VideoWriter			g_cvVideoWriterFullPic;
 cv::VideoWriter         g_cvVideoWriterEvent;
 bool					isCreateImage;
 bool					isReadBin;
-std::vector<EventData>  g_vectorEventData;
+FrameData               g_frameData;
+uint64_t                g_ulEventFrameNo = 0;
+
 FPGADataProcessor::FPGADataProcessor()
 	: m_bIsGeneratingFPN(false)
 	, m_bAdjustBrightness(false)
@@ -89,6 +91,8 @@ FPGADataProcessor::FPGADataProcessor()
 
 	m_pOverlapEventBuffer = new long[PIXELS_NUMBER];
 
+	m_pLastADC = new uint16_t[PIXELS_NUMBER];
+
 	for (int i = 0; i < PIXELS_NUMBER; ++i)
 	{
 		m_pFullPicBuffer[i] = 0;
@@ -98,6 +102,8 @@ FPGADataProcessor::FPGADataProcessor()
 		m_pBufferOpticalFlow[i] = 0;
 		m_pMultiSliceBuffer[i] = 0;
 		m_pOverlapEventBuffer[i] = 0;
+
+		m_pLastADC[i] = 0;
 	}
 	m_pCX4ProcessedData = new CeleX4ProcessedData;
 	m_pCX4Server = new CX4SensorDataServer;
@@ -165,13 +171,31 @@ void FPGADataProcessor::processData(unsigned char *data, long length)
 	//for (i = i + EVENT_SIZE; i + 11 < length; i = i + EVENT_SIZE)
 	for (i = 0; i + EVENT_SIZE <= length; i = i + EVENT_SIZE)
 	{
+		if (FPGADataReader::isIMUData(&data[i]) == FPGADataReader::ACC_OFST_B_DATA)
+		{
+			//cout << "---------- IMU Data ----------" << endl;
+			IMUData data = FPGADataReader::getIMUData();
+			m_vectorIMUData.push_back(data);
+			if (m_vectorIMUData.size() > IMU_DATA_MAX_SIZE)
+			{
+				auto itr = m_vectorIMUData.begin();
+				m_vectorIMUData.erase(itr);
+			}
+			//cout << "x = " << data.x_GYROS << ", y = " << data.y_GYROS << ", z = " << data.z_GYROS << ", t = " << data.t_GYROS << ", frameNo = " << data.frameNo << endl;
+			//cout << "x = " << data.x_ACC << ", y = " << data.y_ACC << ", z = " << data.z_ACC << ", t = " << data.t_ACC << endl;
+			//cout << "x = " << data.x_GYROS_OFST << ", y = " << data.y_GYROS_OFST << ", z = " << data.z_GYROS_OFST << ", t = " << data.t_GYROS_OFST << endl;
+			//cout << "x = " << data.x_ACC_OFST << ", y = " << data.y_ACC_OFST << ", z = " << data.z_ACC_OFST << ", t = " << data.t_ACC_OFST << endl;
+		}
 		bool isSpecialEvent = !(processEvent(&data[i]));
 
 		//cout << "------------------11" << m_ulTimeStampCount << endl;
 		if (m_ulTimeStampCount > m_uiTimeStamp && m_emSensorMode == EventMode)
 		{
-			//m_pCX4ProcessedData->setEventDataVector(m_vectorEventData);
-			g_vectorEventData.swap(m_vectorEventData);
+			m_pCX4ProcessedData->setEventDataVector(m_vectorEventData);
+			m_pCX4ProcessedData->setIMUDataVector(m_vectorIMUData);		
+			g_frameData.frameNo = g_ulEventFrameNo;
+			g_frameData.vecEventData.swap(m_vectorEventData);
+			m_pCX4ProcessedData->setFrameDataVector(g_frameData);
 			vector<EventData> tempVec;
 			m_vectorEventData.swap(tempVec);
 			m_ulTimeStampCount = 0;
@@ -271,10 +295,12 @@ bool FPGADataProcessor::processRowEvent(unsigned char* data)
 
 		m_ulEventTCounter += diffT;
 		m_ulTimeStampCount += diffT;
-
-		if (m_ulEventTCounter > m_uiTimeSlice)
+		//cout << "t = " << t << ", tLast = " << tLast << ", diffT = " << diffT << endl;
+		FPGADataReader::setEventCounter(m_ulEventTCounter);
+		if (m_ulEventTCounter > m_uiTimeSlice /*|| m_ulTimeStampCount > m_uiTimeSlice*/)
 		{
-			//cout << m_uiEventPixelCount << "  " << m_uiTimeSlice << endl;
+			//cout << "--------------------------------------" << m_ulEventTCounter << "  " << m_uiTimeSlice << endl;
+			g_ulEventFrameNo++;
 			m_uiEventPixelCount = 0;
 			return false;
 		}
@@ -317,23 +343,31 @@ void FPGADataProcessor::processColEvent(unsigned char* data)
 	if (row < PIXELS_PER_ROW && col < PIXELS_PER_COL)
 	{
 		// normalize to 0~255
-		adc = normalizeADC(adc);
+		unsigned int adc1 = normalizeADC(adc);
 		int index = row * PIXELS_PER_COL + col;
 
 		eData.row = row;
 		eData.col = col;
-		eData.brightness = adc;
+		eData.brightness = adc1;
 
 		if (m_emSensorMode == FullPictureMode)
 		{
-			m_pFullPicBuffer[index] = adc;
+			m_pFullPicBuffer[index] = adc1;
 			t = 0;
 			//eData.t = 0;
 			m_uiFullPicPixelCount++;
 		}
 		else if (m_emSensorMode == EventMode)
 		{
-			m_pFullPicBuffer[index] = adc;
+			if (adc > m_pLastADC[index])
+				eData.p = 1;
+			else if (adc < m_pLastADC[index])
+				eData.p = -1;
+			else
+				eData.p = 0;
+			m_pLastADC[index] = adc;
+
+			m_pFullPicBuffer[index] = adc1;
 			m_pEventPicBuffer[index] += m_uiEventCountStepSize;
 			eData.t = m_ulTimeStampCount / m_uiTimeScale;
 
@@ -367,13 +401,13 @@ void FPGADataProcessor::processColEvent(unsigned char* data)
 			}
 			else if (1 == type) //Full Picture
 			{
-				m_pFullPicBuffer[index] = adc;
+				m_pFullPicBuffer[index] = adc1;
 				//eData.t = 0;
 				m_uiFullPicPixelCount++;
 			}
 			else if (2 == type) //Optical Flow
 			{
-				m_pBufferOpticalFlow[index] = adc; //for optical-flow A is T
+				m_pBufferOpticalFlow[index] = adc1; //for optical-flow A is T
 				m_uiOpticalFlowPixelCount++;
 			}
 		}
@@ -448,7 +482,14 @@ void FPGADataProcessor::createImage()
 		unsigned char* pDesEDenoisedBinaryPic = m_pCX4ProcessedData->getEventPicBuffer(EventDenoisedBinaryPic);
 		unsigned char* pDesEDenoisedGrayPic = m_pCX4ProcessedData->getEventPicBuffer(EventDenoisedGrayPic);
 		unsigned char* pDesECountPic = m_pCX4ProcessedData->getEventPicBuffer(EventCountPic);
+		unsigned char* pDesEDenoisedByTimeBinaryPic = m_pCX4ProcessedData->getEventPicBuffer(EventDenoisedByTimeBinaryPic);
+		unsigned char* pDesEDenoisedByTimeGrayPic = m_pCX4ProcessedData->getEventPicBuffer(EventDenoisedByTimeGrayPic);
 		unsigned char* pDesOpticalRawPic = m_pCX4ProcessedData->getOpticalFlowPicBuffer();
+
+		//binary and gray after denoising
+		denoisingByTimeInterval(g_frameData.vecEventData, pDesEDenoisedByTimeBinaryPic, EventBinaryPic);
+		denoisingByTimeInterval(g_frameData.vecEventData, pDesEDenoisedByTimeGrayPic, EventGrayPic);
+
 		for (int i = 0; i < PIXELS_NUMBER; ++i)
 		{
 			//--- full picture buffer ---
@@ -479,7 +520,7 @@ void FPGADataProcessor::createImage()
 				pDesEBinarydPic[PIXELS_NUMBER - i - 1] = m_pEventPicBuffer[i] > 0 ? 255 : 0; //binary pic
 				pDesEGrayPic[PIXELS_NUMBER - i - 1] = m_pEventPicBuffer[i] > 0 ? value : 0; //gray pic
 			}
-			pDesESuperimposedPic[PIXELS_NUMBER - i - 1] = m_pEventPicBuffer[i] > 0 ? 255 : value; //superimposed pic
+			pDesESuperimposedPic[PIXELS_NUMBER - i - 1] = pDesEDenoisedByTimeBinaryPic[PIXELS_NUMBER - i - 1] > 0 ? 255 : value; //superimposed pic
 			pDesECountPic[PIXELS_NUMBER - i - 1] = m_pEventPicBuffer[i];	//event count pic
 			//--- denoised pic ---
 			int score = m_pEventPicBuffer[i];
@@ -493,7 +534,7 @@ void FPGADataProcessor::createImage()
 
 			if (m_bMultiSliceEnabled)
 			{
-				if (m_pMultiSliceBuffer[i] > 0)
+				if (m_pMultiSliceBuffer[i] > 0 && uiTPerSlice > 0)
 				{
 					int slice = m_pMultiSliceBuffer[i] / uiTPerSlice + 1;
 					m_pMultiSliceGrayBuffer[PIXELS_NUMBER - i - 1] = slice;
@@ -542,8 +583,8 @@ void FPGADataProcessor::createImage()
 		unsigned char* pDesEBinarydPic = m_pCX4ProcessedData->getEventPicBuffer(EventBinaryPic);
 		unsigned char* pDesEGrayPic = m_pCX4ProcessedData->getEventPicBuffer(EventGrayPic);
 		unsigned char* pDesESuperimposedPic = m_pCX4ProcessedData->getEventPicBuffer(EventSuperimposedPic);
-		//unsigned char* pDesEDenoisedBinaryPic = m_pCX4ProcessedData->getEventPicBuffer(EventDenoisedBinaryPic);
-		//unsigned char* pDesEDenoisedGrayPic = m_pCX4ProcessedData->getEventPicBuffer(EventDenoisedBinaryPic);
+		unsigned char* pDesEDenoisedBinaryPic = m_pCX4ProcessedData->getEventPicBuffer(EventDenoisedBinaryPic);
+		unsigned char* pDesEDenoisedGrayPic = m_pCX4ProcessedData->getEventPicBuffer(EventDenoisedGrayPic);
 		unsigned char* pDesECountPic = m_pCX4ProcessedData->getEventPicBuffer(EventCountPic);
 		unsigned char* pDesOpticalRawPic = m_pCX4ProcessedData->getOpticalFlowPicBuffer();
 		int multiSliceTDiff = 0;
@@ -566,11 +607,21 @@ void FPGADataProcessor::createImage()
 			pDesECountPic[PIXELS_NUMBER - i - 1] = m_pBufferMotion[i]; //event count pic
 			pDesEBinarydPic[PIXELS_NUMBER - i - 1] = m_pBufferMotion[i] > 0 ? 255 : 0;
 			pDesEGrayPic[PIXELS_NUMBER - i - 1] = m_pBufferMotion[i] > 0 ? value : 0;
-			pDesESuperimposedPic[PIXELS_NUMBER - i - 1] = m_pBufferMotion[i] > 0 ? 255 : value;
+			//pDesESuperimposedPic[PIXELS_NUMBER - i - 1] = m_pBufferMotion[i] > 0 ? 255 : value;
+
+			//--- denoised pic ---
+			int score = m_pBufferMotion[i];
+			if (score > 0)
+				score = calculateDenoiseScore(m_pBufferMotion, m_pLastEventPicBuffer, i);
+			else
+				score = 0;
+			pDesEDenoisedBinaryPic[PIXELS_NUMBER - i - 1] = score; //denoised binary pic
+			pDesEDenoisedGrayPic[PIXELS_NUMBER - i - 1] = score > 0 ? value : 0; //denoised gray pic
+			pDesESuperimposedPic[PIXELS_NUMBER - i - 1] = pDesEDenoisedBinaryPic[PIXELS_NUMBER - i - 1] > 0 ? 255 : value;
 
 			if (m_bMultiSliceEnabled)
 			{
-				if (m_pMultiSliceBuffer[i] > 0)
+				if (m_pMultiSliceBuffer[i] > 0 && uiTPerSlice > 0)
 				{
 					int slice = m_pMultiSliceBuffer[i] / uiTPerSlice + 1;
 					m_pMultiSliceGrayBuffer[PIXELS_NUMBER - i - 1] = slice;
@@ -585,10 +636,26 @@ void FPGADataProcessor::createImage()
 		if (m_bMultiSliceEnabled)
 		{
 			m_ulMultiSliceTCounter = 0;
+			//--- denoised pic ---
+			for (int i = 0; i < PIXELS_NUMBER; ++i)
+			{
+				if (m_pMultiSliceGrayBuffer[i] > 0)
+				{
+					if (0 == calculateDenoiseScore(m_pMultiSliceGrayBuffer, i))
+						m_pMultiSliceGrayBuffer[i] = 0;
+				}
+			}
 			calDirectionAndSpeed();
 			memcpy(pDesOpticalRawPic, m_pMultiSliceGrayBuffer, PIXELS_NUMBER);
 		}
 		m_uiMeanIntensity = sumIntensity / PIXELS_NUMBER;
+
+		if (NULL == m_pLastEventPicBuffer)
+		{
+			m_pLastEventPicBuffer = new unsigned char[PIXELS_NUMBER];
+		}
+		memcpy(m_pLastEventPicBuffer, m_pBufferMotion, PIXELS_NUMBER);
+
 		if (g_cvVideoWriterFullPic.isOpened())
 		{
 			cv::Mat mat(640, 768, CV_8UC1, pDesFullPic);
@@ -1015,3 +1082,92 @@ void FPGADataProcessor::setEventCountStepSize(uint32_t stepSize)
 {
 	m_uiEventCountStepSize = stepSize;
 }
+
+int FPGADataProcessor::getIMUDataSize()
+{
+	return m_vectorIMUData.size();
+}
+
+int FPGADataProcessor::getIMUData(int count, std::vector<IMUData>& data)
+{
+	if (m_vectorIMUData.empty() || count <= 0)
+	{
+		return 0;
+	}
+	else
+	{
+		if (count >= m_vectorIMUData.size())
+		{
+			m_vectorIMUData.swap(data);
+			vector<IMUData> tempVec;
+			m_vectorIMUData.swap(tempVec);
+			return data.size();
+		}
+		else
+		{
+			int index = 0;
+			for (auto itr = m_vectorIMUData.begin(); itr != m_vectorIMUData.end();)
+			{
+				index++;
+				data.push_back(m_vectorIMUData.front());
+				itr = m_vectorIMUData.erase(itr);
+				if (index == count)
+					break;
+			}
+			return count;
+		}
+	}
+}
+
+void FPGADataProcessor::denoisingByTimeInterval(std::vector<EventData> vec, unsigned char* buffer, emEventPicMode mode)
+{
+	cv::Mat preImg = cv::Mat::zeros(640, 768, CV_32FC1);
+	//!!!clear
+	for (int i = 0; i < PIXELS_NUMBER; ++i)
+	{
+		buffer[i] = 0;
+	}
+
+	if (!vec.empty())
+	{
+		for (int t = 0; t < vec.size() - 1; ++t)
+		{
+			if (vec[t].row == 0 || vec[t].row == 639 || vec[t].col == 0 || vec[t].col == 767)
+				continue;
+
+			float d1 = preImg.at<float>(vec[t].row, vec[t].col);
+			float d2 = preImg.at<float>(vec[t].row, vec[t].col + 1);
+			float d3 = preImg.at<float>(vec[t].row + 1, vec[t].col);
+			float d4 = preImg.at<float>(vec[t].row, vec[t].col - 1);
+			float d5 = preImg.at<float>(vec[t].row - 1, vec[t].col);
+
+			float deltaT = 5 * (vec[t].t + preT) - d1 - d2 - d3 - d4 - d5;
+
+			count += 1;
+			tSum += deltaT;
+
+			if (deltaT > FLT_MAX || deltaT < FLT_MIN)
+			{
+				count = 0.0;
+				tSum = 0.0;
+				preT = 0.0;
+				preImg = cv::Mat::zeros(640, 768, CV_32FC1);
+			}
+
+			if (deltaT < tSum / count / 2.0)
+			{
+				if (mode == EventBinaryPic)
+				{
+					buffer[PIXELS_NUMBER - (vec[t].row * PIXELS_PER_COL + vec[t].col) - 1] = 255;
+				}
+				else if (mode == EventGrayPic)
+				{
+					buffer[PIXELS_NUMBER - (vec[t].row * PIXELS_PER_COL + vec[t].col) - 1] = vec[t].brightness;
+				}
+			}
+			preImg.at<float>(vec[t].row, vec[t].col) = vec[t].t + preT;
+		}
+		preT += vec[vec.size() - 1].t;
+	}
+}
+
