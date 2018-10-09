@@ -1,5 +1,5 @@
 # CeleX-SDK
-SDK version 2.2 for CeleX sensor.
+SDK for CeleX sensor.
 
 ![Structure](https://github.com/CelePixel/CeleX-SDK/raw/master/Sources/CeleXDemo/images/SDK_Structure.png)
 
