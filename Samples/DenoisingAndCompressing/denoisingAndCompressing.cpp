@@ -63,8 +63,11 @@ void SensorDataObserver::onFrameDataUpdated(CeleX4ProcessedData* pSensorData)
 		//mat = pSensorData->getEventPicMat(EventDenoisedByTimeBinaryPic); //get binary pic after denoising directly
 
 		std::vector<EventData> v = pSensorData->getEventDataVector();
+
 		m_pCelex4->denoisingByTimeInterval(v,mat); //get binary pic after denosing by the interface
+		
 		//m_pCelex4->denoisingAndCompresing(v,0.5,mat);	//denoising and compressing
+
 
 		cv::imshow("show", mat);
 		cv::waitKey(10);

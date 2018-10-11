@@ -269,6 +269,9 @@ public:
 	int getIMUData(int count, std::vector<IMUData>& data);
 	void setIMUIntervalTime(uint32_t value);
 
+	bool denoisingByTimeInterval(std::vector<EventData> vec, cv::Mat &mat);
+	bool denoisingAndCompresing(std::vector<EventData> vec, float compressRatio, cv::Mat &mat);
+
 	void setResetLength(uint32_t value);
 
 	void clearData();
@@ -289,8 +292,6 @@ public:
 	std::vector<int> getDataLengthPerSpecial();
 	std::vector<unsigned long> getEventCountListPerSpecial();
 
-	bool denoisingByTimeInterval(std::vector<EventData> vec, cv::Mat &mat);
-	bool denoisingAndCompresing(std::vector<EventData> vec, float compressRatio, cv::Mat &mat);
 
 private:
 	void initializeFPGA(uint32_t value = 0);

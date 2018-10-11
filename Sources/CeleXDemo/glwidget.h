@@ -76,6 +76,7 @@ private:
     GLfloat moveX,moveY;
     uint32_t eventTimeSlice;
 
+
 public:
 
 private:

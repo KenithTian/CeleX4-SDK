@@ -29,7 +29,7 @@ GLWidget::GLWidget(QWidget *parent)
     ,upY(-1.0)
     ,upZ(0.0)
     ,velocity(0.002)
-    ,eventTimeSlice(30)
+    ,eventTimeSlice(60)
 {
     axisThick_=axisThick;
     cubeSize_=cubeSize;
@@ -42,7 +42,7 @@ GLWidget::~GLWidget()
 
 void GLWidget::initializeGL()
 {
-//    qDebug()<<"init";
+    //    qDebug()<<"init";
     initializeOpenGLFunctions();
     initFlag();
     initParam();
@@ -63,8 +63,8 @@ void GLWidget::paintGL()
     }
     else if (M_right) {
         fovydif = (GLdouble)(moveY*velocity*20.0);
-//        centerXdif = (GLdouble)(moveX*velocity);
-//        centerYdif = (GLdouble)(moveY*velocity);
+        //        centerXdif = (GLdouble)(moveX*velocity);
+        //        centerYdif = (GLdouble)(moveY*velocity);
     }
     else {
         onCenterX = centerX;
@@ -233,20 +233,20 @@ void GLWidget::wheelEvent(QWheelEvent *event)
 {
     if(event->delta()>0)
     {
-//        qDebug()<<"wheel";
-//        M_wheel_up = true;
-//        M_left = false;
-//        M_right = false;
-//        M_middle = false;
-        cubeSize += cubeSize_;
+        //        qDebug()<<"wheel";
+        //        M_wheel_up = true;
+        //        M_left = false;
+        //        M_right = false;
+        //        M_middle = false;
+//        cubeSize += cubeSize_;
     }
     else
     {
-//        M_wheel_down = true;
-//        M_left = false;
-//        M_right = false;
-//        M_middle = false;
-        cubeSize -= cubeSize_;
+        //        M_wheel_down = true;
+        //        M_left = false;
+        //        M_right = false;
+        //        M_middle = false;
+//        cubeSize -= cubeSize_;
     }
 }
 
@@ -362,41 +362,43 @@ void GLWidget::drawPointsAsCube()
     {
         for (int i = 0; i < v.size() - 1; ++i)
         {
-            ///位置
-            GLdouble x = (768 - (GLdouble)v[i].col - 383) / 768;
-            GLdouble y = (640 - (GLdouble)v[i].row - 321) / 640;
-            GLdouble z = (GLdouble)v[i].t / (eventTimeSlice * 1000 / 0.16);
-            //GLdouble z = 1;
+            if(v[i].t<=eventTimeSlice&&v[i].t>eventTimeSlice-30)
+            {
+                ///位置
+                GLdouble x = (768 - (GLdouble)v[i].col - 383) / 768;
+                GLdouble y = (640 - (GLdouble)v[i].row - 321) / 640;
+                GLdouble z = ((GLdouble)v[i].t-30) / (eventTimeSlice/4);
 
-            ///颜色
-            if (z == 0)
-            {
-                glColor3d(1.0, 1.0, 1.0);
-            }
-            else if (z < 0.2)	//blue
-            {
-                glColor3d(0.0, 0.0, 1.0);
-            }
-            else if (z < 0.5)
-            {
-                glColor3d(0.0, 1.0, 1.0);
-            }
-            else if (z < 0.9)	//green
-            {
-                glColor3d(0.0, 1.0, 0.0);
-            }
-            else if (z < 1.4)
-            {
-                glColor3d(1.0, 1.0, 0.0);
-            }
-            else	//red
-            {
-                glColor3d(1.0, 0.0, 0.0);
-            }
+                ///颜色
+                if (z == 0)
+                {
+                    glColor3d(1.0, 1.0, 1.0);
+                }
+                else if (z < 0.2)	//blue
+                {
+                    glColor3d(0.0, 0.0, 1.0);
+                }
+                else if (z < 0.5)
+                {
+                    glColor3d(0.0, 1.0, 1.0);
+                }
+                else if (z < 0.9)	//green
+                {
+                    glColor3d(0.0, 1.0, 0.0);
+                }
+                else if (z < 1.4)
+                {
+                    glColor3d(1.0, 1.0, 0.0);
+                }
+                else	//red
+                {
+                    glColor3d(1.0, 0.0, 0.0);
+                }
 
-            glPushName(i);
-            drawCube(cubeSize, cubeSize, cubeSize, x, y, z, ms_jade, 0.0, 1.0, 1.0, 0.0);
-            glPopName();
+                glPushName(i);
+                drawCube(cubeSize, cubeSize, cubeSize, x, y, z, ms_jade, 0.0, 1.0, 1.0, 0.0);
+                glPopName();
+            }
         }
     }
     //    imshow("cvdemo", m_pCelexSensor->getEventPicMat(EventBinaryPic));

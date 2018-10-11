@@ -50,6 +50,7 @@ std::string XBase::getApplicationDirPath()
 #else
     char path[1024];
     int cnt = readlink("/proc/self/exe", path, 1024);
+	cout << "XBase::getApplicationDirPath: readlink count = " << cnt << endl;
     if(cnt < 0|| cnt >= 1024)
     {
         return NULL;

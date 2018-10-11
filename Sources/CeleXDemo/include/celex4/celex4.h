@@ -38,6 +38,8 @@
 #include <fstream>
 #include <opencv2/opencv.hpp>
 
+#define IMU_DATA_MAX_SIZE    1000
+
 enum emSensorMode {
 	FullPictureMode = 0,
 	EventMode = 1,
@@ -70,9 +72,36 @@ typedef struct EventData
 {
 	uint16_t col;
 	uint16_t row;
-	uint16_t brightness;
+	uint8_t  brightness;
+	int8_t   p; //-1: intensity weakened; 1: intensity is increased; 0 intensity unchanged
 	uint32_t t;
 }EventData;
+
+typedef struct FrameData
+{
+	std::vector<EventData> vecEventData;
+	uint64_t frameNo;
+}FrameData;
+
+typedef struct IMUData {
+	double			x_GYROS;
+	double			y_GYROS;
+	double			z_GYROS;
+	uint32_t		t_GYROS;
+	double			x_ACC;
+	double			y_ACC;
+	double			z_ACC;
+	uint32_t		t_ACC;
+	double			x_GYROS_OFST;
+	double			y_GYROS_OFST;
+	double			z_GYROS_OFST;
+	uint32_t		t_GYROS_OFST;
+	double			x_ACC_OFST;
+	double			y_ACC_OFST;
+	double			z_ACC_OFST;
+	uint32_t		t_ACC_OFST;
+	uint64_t		frameNo;
+} IMUData;
 
 class FrontPanel;
 class HHSequenceMgr;
@@ -159,6 +188,8 @@ public:
 
 	bool getEventDataVector(std::vector<EventData> &vector);
 
+	bool getEventDataVector(std::vector<EventData> &vector, uint64_t& frameNo);
+
 	void setThreshold(uint32_t value);
 	uint32_t getThreshold();
 
@@ -233,6 +264,13 @@ public:
 	void convertBinToAVI(std::string binFile, cv::VideoWriter writer);
 
 	void enableAutoAdjustBrightness(bool enable);
+	//--- IMU Data ---
+	int getIMUDataSize();
+	int getIMUData(int count, std::vector<IMUData>& data);
+	void setIMUIntervalTime(uint32_t value);
+
+	bool denoisingByTimeInterval(std::vector<EventData> vec, cv::Mat &mat);
+	bool denoisingAndCompresing(std::vector<EventData> vec, float compressRatio, cv::Mat &mat);
 
 	void setResetLength(uint32_t value);
 
@@ -254,8 +292,6 @@ public:
 	std::vector<int> getDataLengthPerSpecial();
 	std::vector<unsigned long> getEventCountListPerSpecial();
 
-	bool denoisingByTimeInterval(std::vector<EventData> vec, cv::Mat &mat);
-	bool denoisingAndCompresing(std::vector<EventData> vec, float compressRatio, cv::Mat &mat);
 
 private:
 	void initializeFPGA(uint32_t value = 0);

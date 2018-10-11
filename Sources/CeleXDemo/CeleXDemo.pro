@@ -6,8 +6,9 @@
 
 QT       += core gui
 QT       += opengl
-LIBS     += -lopengl32
-
+win32{
+    LIBS     += -lopengl32
+}
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = CeleXDemo
@@ -98,8 +99,12 @@ RESOURCES += \
     images.qrc
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/glut/ -lglut64
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/glut/ -lglut64d
-else:unix: LIBS += -L$$PWD/glut/ -lglut64
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/glut/ -lglutd64
+else:unix: LIBS += -L$$PWD/glut/ -lglut
 
-INCLUDEPATH += $$PWD/glut
-DEPENDPATH += $$PWD/glut
+win32{
+    INCLUDEPATH += $$PWD/glut
+    DEPENDPATH += $$PWD/glut
+}
+
+unix:!macx: LIBS += -lGL -lGLU -lglut

@@ -375,7 +375,7 @@ void SensorDataObserver::updateImage(unsigned char *pBuffer1, unsigned char *pBu
                         *(pp1+2) = value;
                     }
                 }
-                else if (m_uiDisplayMode1 == 7) //OpticalFlow direction
+                else if (m_uiDisplayMode1 == 5) //OpticalFlow direction
                 {
                     if (0 == value)
                     {
@@ -414,7 +414,7 @@ void SensorDataObserver::updateImage(unsigned char *pBuffer1, unsigned char *pBu
                         *(pp1+2) = 0;
                     }
                 }
-                else if (m_uiDisplayMode1 == 6 || m_uiDisplayMode1 == 8)  //OpticalFlow frame and speed
+                else if (m_uiDisplayMode1 == 4 || m_uiDisplayMode1 == 6)  //OpticalFlow frame and speed
                 {
                     if (0 == value)
                     {
@@ -705,8 +705,9 @@ MainWindow::MainWindow(int argc, char *argv[],QWidget *parent)
         qDebug() << "Can't load FPN.txt or the file is invalid!";
     }
 
-    m_pCelexSensor->setEventFrameTime(30);
+    m_pCelexSensor->setEventFrameTime(60);
 
+    m_pCelexSensor->setTimeScale(1);
     //create read sensor data timer
     m_pPipeOutDataTimer = new QTimer(this);
     m_pPipeOutDataTimer->setSingleShot(true);
@@ -896,7 +897,8 @@ void MainWindow::setRecording(bool bStart, int type)
         }
         else
         {
-            m_pCelexSensor->startRecordingVideo(qstrPath.toStdString(), qstrNameF.toStdString(), qstrNameE.toStdString(), CV_FOURCC('X', 'V', 'I', 'D'), 50.0);
+            //m_pCelexSensor->startRecordingVideo(qstrPath.toStdString(), qstrNameF.toStdString(), qstrNameE.toStdString(), CV_FOURCC('X', 'V', 'I', 'D'), 50.0);
+            m_pCelexSensor->startRecordingVideo(qstrPath.toStdString(), qstrNameF.toStdString(), qstrNameE.toStdString(), -1, 50.0);
             pButton->setText("Stop Recording Video");
         }
     }
@@ -1688,10 +1690,8 @@ void MainWindow::onDisplayMode1Changed(int mode)
     if (mode == 7)
     {
         pWidget1 = new GLWidget(this);
-        pWidget1->setGeometry(21,220,768,640);
+        pWidget1->setGeometry(m_pComboBoxModeText1->x()+1,m_pComboBoxModeText1->y()+34,768,640);
         pWidget1->show();
-        //        pWidget1.setGeometry(10,400,768,640);
-        //        pWidget1.show();
     }
     else
     {
@@ -1713,15 +1713,12 @@ void MainWindow::onDisplayMode2Changed(int mode)
     if (mode == 7)
     {
         pWidget2 = new GLWidget(this);
-        pWidget2->setGeometry(970,220,768,640);
+        pWidget2->setGeometry(m_pComboBoxModeText2->x()+1,m_pComboBoxModeText1->y()+34,768,640);
         pWidget2->show();
-        //        pWidget2.setGeometry(800,400,768,640);
-        //        pWidget2.show();
     }
     else
     {
         pWidget2->hide();
-        //        pWidget2.hide();
     }
 }
 
@@ -1787,6 +1784,23 @@ void MainWindow::resizeEvent(QResizeEvent *event)
 {
     qDebug() << m_pComboBoxModeText1->x() << m_pComboBoxModeText2->x();
     m_pSensorDataObserver->setImagePos(m_pComboBoxModeText1->x()-10, m_pComboBoxModeText2->x()-10);
+
+    int x1 = m_pComboBoxModeText1->x()-10;
+    int x2 = m_pComboBoxModeText2->x()-10;
+    int diffX = (x2 - x1);
+    int w, h;
+    if (diffX >= 768)
+    {
+        w = 768;
+        h = 640;
+    }
+    else
+    {
+        w = diffX - 10;
+        h = w * 640 / 768;
+    }
+    pWidget1->setGeometry(m_pComboBoxModeText1->x()+1,m_pComboBoxModeText1->y()+34,w,h);
+    pWidget2->setGeometry(m_pComboBoxModeText2->x()+1,m_pComboBoxModeText1->y()+34,w,h);
 }
 
 void MainWindow::disableSlider(QString objName, bool disable)
@@ -1923,8 +1937,8 @@ void MainWindow::convertBin2Video()
     if (attrs.mode == FullPictureMode)
     {
         cv::VideoWriter	writer1;
-        writer1.open(path1, CV_FOURCC('X', 'V', 'I', 'D'), 50.0, cv::Size(768, 640), false);
-        //writer1.open(path1, -1, 50.0, cv::Size(768, 640), false);
+        //writer1.open(path1, CV_FOURCC('X', 'V', 'I', 'D'), 50.0, cv::Size(768, 640), false);
+        writer1.open(path1, -1, 50.0, cv::Size(768, 640), false);
         m_pCelexSensor->convertBinToAVI(path, writer1);
     }
     else
@@ -1934,8 +1948,8 @@ void MainWindow::convertBin2Video()
         //writer1.open(path1, -1, 20.0, cv::Size(768, 640), false);
 
         cv::VideoWriter	writer2;
-        writer2.open(path2, CV_FOURCC('X', 'V', 'I', 'D'), 20.0, cv::Size(768, 640), false);
-        //writer2.open(path2, -1, 20.0, cv::Size(768, 640), false);
+        //writer2.open(path2, CV_FOURCC('X', 'V', 'I', 'D'), 20.0, cv::Size(768, 640), false);
+        writer2.open(path2, -1, 20.0, cv::Size(768, 640), false);
 
         m_pCelexSensor->convertBinToAVI(path, writer1);
         m_pCelexSensor->convertBinToAVI(path, EventBinaryPic, 60, 60, writer2);
