@@ -725,7 +725,7 @@ uint32_t FPGADataProcessor::getLowerADC()
 void FPGADataProcessor::setTimeSlice(uint32_t msec)
 {
 	m_uiTimeSliceValue = msec;
-	m_uiTimeSlice = m_uiClockRate * 1000 * msec / 2;
+	m__uiTimeScale = m_uiTimeSlice = m_uiClockRate * 1000 * msec / 2;
 	m_ulMultiSliceTCounter = 0;
 	m_bNeedResetMultiSliceData = true;
 }
@@ -762,7 +762,7 @@ CX4SensorDataServer *FPGADataProcessor::getSensorDataServer()
 void FPGADataProcessor::setClockRate(uint32_t value)
 {
 	m_uiClockRate = value;
-	m_uiTimeSlice = m_uiClockRate * 1000 * m_uiTimeSliceValue / 2; //25000 * msec;
+	m__uiTimeScale = m_uiTimeSlice = m_uiClockRate * 1000 * m_uiTimeSliceValue / 2; //25000 * msec;
 }
 
 void FPGADataProcessor::setFPGATimeCycle(uint32_t value)
@@ -1064,7 +1064,8 @@ BinFileAttributes FPGADataProcessor::getBinFileAttributes(std::string binFile)
 
 void FPGADataProcessor::setTimeScale(float scale)
 {
-	m_uiTimeScale = scale * 100000 / 8;
+	//m_uiTimeScale = scale * 100000 / 8;
+	m_uiTimeScale = scale * 500 * m_uiClockRate; //(scale * m_uiClockRate) / (25 * 0.08us)
 }
 
 //void FPGADataProcessor::setTimeStamp(uint32_t msec)
