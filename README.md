@@ -20,19 +20,23 @@ sensor, and it is consistent across the Windows (32-/64-bit) and Linux (32-/64-b
 environments. In addition, it provides both pure C++ interfaces without any third libraries and
 OpenCV-based interfaces to obtain data from the sensor.
 
-* This SDK provides three working modes of CeleX Sensors: Full-Picture data, Event data, and
-Optical-Flow data. Full-Picture and Event data output alternately to create FullPic-Event data.
-
 `The CeleX-SDK is structured as follows:`
 
-* _DemoGUI_: CeleX Demo GUI execution (Windows and Linux).
+* _DemoGUI_: 
+  * _CeleX4_: CeleX-4 Demo GUI execution (Windows and Linux).
+  * _CeleX5_: CeleX-5 Demo GUI execution (Windows and Linux).
 * _Documentation_:
-  * _CeleX_SDK_Reference_: The introduction of CeleX sensor and the references of all the classes and functions in the SDK.
-  * _CeleX_SDK_Getting_Started_Guide_: The instructions to use the CeleX sensor demo kit, install OpalKelly driver, run the CeleXDemo GUI and compile the source code.
-* _Drivers_: OpalKelly FPGA Board driver (Windows / Linux / ARM).
+  * _CeleX4_SDK_Reference_: The introduction of CeleX-4 sensor and the references of all the classes and functions in the SDK.
+  * _CeleX4_SDK_Getting_Started_Guide_: The instructions to use the CeleX-4 sensor demo kit, install OpalKelly driver, run the CeleXDemo GUI and compile the source code.
+  * _CeleX5_SDK_Reference_: The introduction of CeleX-5 sensor and the references of all the classes and functions in the SDK.
+  * _CeleX5_SDK_Getting_Started_Guide_: The instructions to use the CeleX-5 sensor demo kit, install CX3 USB3.0 driver, run the CeleXDemo GUI and compile the source code.
+* _Drivers_: 
+  * _CeleX4_: OpalKelly FPGA Board driver (Windows / Linux / ARM).
+  * _CeleX5_: CX3 USB3.0 driver (Windows / Linux).
 * _Sources_:
-  * _SDK_: Source code of CeleX library.
+  * _SDK_: Source code of CeleX library (including both CeleX-4 and CeleX-5).
   * _CeleXDemo_: Source code (developed by Qt) of CeleX demo.
   * _FPGA_: SE Project files, top level source code, Lower Layer FPGA module Declaration and Netlist file (ngc file).
+  * _CeleDriver_: Source code of CX3 USB3.0 driver.
 * _Samples_: Several examples developed based on SDK and a sample user manual file.
 * _ReleaseNotes.txt_: New features, fixed bugs and SDK development environment.
